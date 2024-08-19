@@ -18,12 +18,10 @@ class CPromise {
 
         if (typeof executor === 'function') {
             try {
-                setTimeout(() => {
-                    executor(
-                        this._onFulfilled.bind(this),
-                        this._onRejected.bind(this)
-                    );
-                });
+                executor(
+                    this._onFulfilled.bind(this),
+                    this._onRejected.bind(this)
+                );
             } catch (ex) {
                 this._onRejected(ex);
             }
@@ -72,9 +70,7 @@ class CPromise {
                         reason => controlledPromise._onRejected(reason)
                     );
                 } else {
-                    setTimeout(() => {
-                        controlledPromise._onFulfilled(valueOrPromise);
-                    });
+                    controlledPromise._onFulfilled(valueOrPromise);
                 }
             } else {
                 return controlledPromise._onFulfilled(this._value);
@@ -103,9 +99,7 @@ class CPromise {
                         reason => controlledPromise._onRejected(reason),
                     );
                 } else {
-                    setTimeout(() => {
-                        controlledPromise._onFulfilled(valueOrPromise);
-                    });
+                    controlledPromise._onFulfilled(valueOrPromise);
                 }
             } else {
                 return controlledPromise._onRejected(this._value);
@@ -124,41 +118,74 @@ class CPromise {
     }
 
     _onFulfilled(value) {
-        if (this._state === PromiseState.PENDING) {
-            this._state = PromiseState.FULFILLED;
-            this._value = value;
-            this._propagateFulfilled();
-        }
+        process.nextTick(() => {
+            if (this._state === PromiseState.PENDING) {
+                this._state = PromiseState.FULFILLED;
+                this._value = value;
+                this._propagateFulfilled();
+            }
+        })
     }
 
     _onRejected(reason) {
-        if (this._state === PromiseState.PENDING) {
-            this._state = PromiseState.REJECTED;
-            this._reason = reason;
-            this._propagateRejected();
-        }
+        process.nextTick(() => {
+            if (this._state === PromiseState.PENDING) {
+                this._state = PromiseState.REJECTED;
+                this._reason = reason;
+                this._propagateRejected();
+            }
+        })
     }
 }
 
 function main() {
-    const p = new CPromise((resolve, reject) => {
-        resolve()
-        reject()
+//    const p = new CPromise((resolve, reject) => {
+//        resolve()
+//        reject()
+//    });
+//
+//    p
+//        .then(() => console.log('then'))
+//        .then(() => console.log('then agian'))
+//        .catch(() => console.log('catch'));
+//
+//    p.then(() => console.log('multiple then'));
+//    p.then(() => console.log('multiple then'));
+//    p.then(() => console.log('multiple then'));
+//
+//    p.catch(() => console.log('multiple catch 1'));
+//    p.catch(() => console.log('multiple catch 2'));
+//    p.catch(() => console.log('multiple catch 3'));
+//
+//    p.finally(() => console.log('done'));
+
+//    console.log('start');
+//    const p = new CPromise((resolve, reject) => {
+//        console.log(1);
+//        resolve(2);
+//    });
+//
+//    p.then(res => {
+//        console.log(res);
+//    });
+//
+//    console.log('end');
+
+    console.log('start');
+
+    setTimeout(() => {
+        console.log('setTimeout');
     });
 
-    p
-        .then(() => console.log('then'))
-        .then(() => console.log('then agian'))
-        .catch(() => console.log('catch'));
+    const p = new CPromise((resolve, reject) => {
+        console.log(1);
+        resolve(2);
+    });
 
-    p.then(() => console.log('multiple then'));
-    p.then(() => console.log('multiple then'));
-    p.then(() => console.log('multiple then'));
+    p.then(res => {
+        console.log(res);
+    });
 
-    p.catch(() => console.log('multiple catch 1'));
-    p.catch(() => console.log('multiple catch 2'));
-    p.catch(() => console.log('multiple catch 3'));
-
-    p.finally(() => console.log('done'));
+    console.log('end');
 }
 main();
